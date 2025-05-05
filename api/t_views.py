@@ -226,6 +226,35 @@ def get_item(request, id):
             data['change'] = None
             data['retail_trand'] = "UNKNOWN"
 
+        if data['instrumentType'] == "bond":
+            response_bond = requests.post(f"{T_INVEST_BASE_URL}.InstrumentsService/BondBy", json={
+                "idType": "INSTRUMENT_ID_TYPE_FIGI",
+                "id": data['figi']
+            }, headers=headers)
+            response_bond.raise_for_status()
+            data_bond = response_bond.json().get("instrument", {})
+
+            tz = pytz.timezone('Europe/Moscow')
+            now = datetime.now(tz)
+            today = now
+            year_plus_one = today + timedelta(days=365)
+
+            response_coupon = requests.post(f"{T_INVEST_BASE_URL}.InstrumentsService/GetBondEvents", json={
+                "from": today.isoformat(),
+                "to": year_plus_one.isoformat(),
+                "instrumentId": data['figi']
+            }, headers=headers)
+            response_coupon.raise_for_status()
+            data_coupon = response_coupon.json().get("events", [])
+
+            data['bond_info'] = {
+                'coupon': convert_price(data_coupon[0]['payOneBond']),
+                'nominal': convert_price(data_bond['nominal']),
+                'maturity_date': data_bond['maturityDate'],
+                'nkd': convert_price(data_bond['aciValue']),
+                'coupons_per_year': data_bond['couponQuantityPerYear']
+            }
+
         item, created = Item.objects.update_or_create(
             id=id,
             defaults={

@@ -45,11 +45,6 @@ class UserDetailView(generics.RetrieveAPIView):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-from django.http import JsonResponse
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.tokens import AccessToken
-import json
-
 @csrf_exempt
 def update_user_data(request):
     auth_header = request.headers.get('Authorization', '')
