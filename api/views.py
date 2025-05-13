@@ -317,6 +317,9 @@ def get_collection(request, id):
     except:
         user = None
 
+    serializer = CollectionItemSerializer(collection)
+    response_data = serializer.data
+
     if user:
         user_action = UserCollectionAction.objects.filter(
             user_id=user_id,
@@ -325,9 +328,7 @@ def get_collection(request, id):
         response_data['user_action'] = user_action.action if user_action else 'none'
     else:
         response_data['user_action'] = None
-
-    serializer = CollectionItemSerializer(collection)
-    response_data = serializer.data
+        
     return JsonResponse(response_data)
 
 @csrf_exempt
